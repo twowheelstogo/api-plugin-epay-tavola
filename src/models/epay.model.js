@@ -42,7 +42,7 @@ const TO_AUTHORIZE = "0200";
 const TO_REFUND = "0202";
 const TO_REVERSE = "0400";
 
-const modelToXml = (model, action) => {
+const modelToXml = (model, action, isReverse = false) => {
   const epayPaymentIP = process.env.EPAY_PAYMENT_IP;
   const epayMerchantIP = process.env.EPAY_MERCHANT_IP;
   const epayMerchantUser = process.env.EPAY_MERCHANT_USER;
@@ -68,16 +68,20 @@ const modelToXml = (model, action) => {
   xml += `<typ:auditNumber>${model.auditNumber}</typ:auditNumber>`;
   xml += `<typ:track2Data></typ:track2Data>`;
   if (action == 0) {
-    xml += `<typ:messageType>${TO_AUTHORIZE}</typ:messageType>`;
+    if(isReverse){
+      xml += `<typ:messageType>${TO_REVERSE}</typ:messageType>`;
+    }else{
+      xml += `<typ:messageType>${TO_AUTHORIZE}</typ:messageType>`;
+    }
     xml += `<typ:pan>${model.pan}</typ:pan>`;
     xml += `<typ:expdate>${model.expdate}</typ:expdate>`;
     xml += `<typ:amount>${parseInt(model.amount * 100)}</typ:amount>`;
     xml += `<typ:cvv2>${model.cvv2}</typ:cvv2>`;
   } else {
-    if (action == 1) {
-      xml += `<typ:messageType>${TO_REFUND}</typ:messageType>`;
-    } else {
+    if(isReverse){
       xml += `<typ:messageType>${TO_REVERSE}</typ:messageType>`;
+    }else{
+      xml += `<typ:messageType>${TO_REFUND}</typ:messageType>`;
     }
     xml += `<typ:pan></typ:pan>`;
     xml += `<typ:expdate></typ:expdate>`;

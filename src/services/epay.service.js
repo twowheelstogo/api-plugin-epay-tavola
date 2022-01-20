@@ -32,12 +32,20 @@ const serviceEpay = async (model, action) => {
       "Content-Type": "text/xml; charset=utf-8",
     },
   };
-  let res = await fetch(`${epayUrl}?WSDL`, option);
-  if (!res.ok) {
-    xml = EpayModel.modelToXml(model, 2);
+  let res = null;
+  try {
+    res = await fetch(`${epayUrl}?WSDL`, option);
+  } catch (_error) {
+    xml = EpayModel.modelToXml(model, action, true);
     option.body = xml;
     await fetch(`${epayUrl}?WSDL`, option);
-    throw new Error("Error en la comunicación");
+    throw new Error("Error en la comunicación del sevicios de cobros");
+  }
+  if (!res.ok) {
+    xml = EpayModel.modelToXml(model, action, true);
+    option.body = xml;
+    await fetch(`${epayUrl}?WSDL`, option);
+    throw new Error("Error en la comunicación del sevicios de cobros");
   }
   const data = await EpayModel.resToJson(res);
   const error = EpayConstant[data.responseCode];
