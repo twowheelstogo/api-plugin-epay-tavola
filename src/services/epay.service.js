@@ -45,9 +45,13 @@ const serviceEpay = async (model, action) => {
   try {
     res = await fetch(`${epayUrl}?WSDL`, option);
   } catch (_error) {
+    console.log("paso aca");
+    console.log(_error);
     xml = EpayModel.modelToXml(model, action, true);
     option.body = xml;
+    console.log("hola");
     await fetch(`${epayUrl}?WSDL`, option);
+    console.log("si")
     hasError = true;
   } finally {
     clearTimeout(timeout);
