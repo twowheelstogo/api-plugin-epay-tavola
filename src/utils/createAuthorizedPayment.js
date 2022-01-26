@@ -4,6 +4,7 @@ import { EpayModel, EmailModel } from "../models/index.js";
 import { EPAY_PACKAGE_NAME } from "./constants.js";
 import { sendOrderPaymentEmail } from "../helpers/index.js";
 
+
 const METHOD = "credit";
 const PAYMENT_METHOD_NAME = "epay_card";
 
@@ -25,7 +26,7 @@ export default async function exampleCreateAuthorizedPayment(context, input) {
     shopId,
     email,
     paymentData: { cardNumber, cardExpiry, cardCVV, cardName },
-    orderIdSequence,
+    orderIdSequence
   } = input;
   const model = EpayModel.getModel(
     "190.56.108.46",
@@ -48,7 +49,7 @@ export default async function exampleCreateAuthorizedPayment(context, input) {
     data: {
       ...res,
       ...model.metadata,
-      gqlType: "EPayPaymentData", // GraphQL union resolver uses this
+      gqlType: "EPayPaymentData" // GraphQL union resolver uses this
     },
     displayName: `Pago con tarjeta`,
     method: METHOD,
@@ -60,6 +61,6 @@ export default async function exampleCreateAuthorizedPayment(context, input) {
     shopId,
     status: "created",
     transactionId: res.auditNumber,
-    transactions: [],
+    transactions: []
   };
 }
