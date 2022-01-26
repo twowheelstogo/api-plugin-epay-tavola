@@ -2,6 +2,7 @@ import fetch from "node-fetch";
 import AbortController from "abort-controller";
 import { EpayConstant } from "../constants/index.js";
 import { EpayModel } from "../models/index.js";
+
 const TIME_EPAY = 60000;
 
 const serviceInvoice = async (body, action = 1) => {
@@ -45,32 +46,46 @@ const serviceEpay = async (model, action) => {
   try {
     res = await fetch(`${epayUrl}?WSDL`, option);
   } catch (_error) {
-    console.log("paso aca");
-    console.log(_error);
     xml = EpayModel.modelToXml(model, action, true);
-    option.body = xml;
-    console.log("hola");
-    await fetch(`${epayUrl}?WSDL`, option);
-    console.log("si")
+    const option2 = {
+      method: "POST",
+      body: xml,
+      headers: {
+        "Content-Type": "text/xml; charset=utf-8"
+      }
+    };
+
+    fetch(`${epayUrl}?WSDL`, option2);
+
     hasError = true;
   } finally {
     clearTimeout(timeout);
   }
   if (hasError) {
-    throw new Error("Error en la comunicación del sevicios de cobros");
+    throw new Error(`Durante los ùltimos 60 segundos, 
+    no se ha tenido ninguna respuesta del servicio de cobros,
+     por lo cual se realizarà una regresiòn de la transacciòn`);
   }
   if (!res.ok) {
     xml = EpayModel.modelToXml(model, action, true);
-    option.body = xml;
-    await fetch(`${epayUrl}?WSDL`, option);
-    throw new Error("Error en la comunicación del sevicios de cobros");
+    const option3 = {
+      method: "POST",
+      body: xml,
+      headers: {
+        "Content-Type": "text/xml; charset=utf-8"
+      }
+    };
+
+    fetch(`${epayUrl}?WSDL`, option3);
+    throw new Error(`No se ha tenido ninguna respuesta del servicio de cobros, 
+     por lo cual se realizarà una regresiòn de la transacciòn`);
   }
   const data = await EpayModel.resToJson(res);
   const error = EpayConstant[data.responseCode];
   if (error) {
     throw new Error(error);
   } else if (data.responseCode !== "00") {
-    throw new Error("error desconocido en el sistema de cobros");
+    throw new Error("error desconocido en el sistema de cobros, no se realizò ninguna transacciòn");
   }
   return data;
 };
